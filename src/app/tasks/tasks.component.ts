@@ -1,9 +1,9 @@
 import { Component, Input } from '@angular/core';
 
 import { TaskComponent } from './task/task.component';
-import { DUMMY_TASKS } from '../dummy-tasks';
 import { NewTaskComponent } from './new-task/new-task.component';
 import { type NewTaskData } from './task/task.model';
+import { TasksService } from './tasks.services';
 
 @Component({
   selector: 'app-tasks',
@@ -13,23 +13,20 @@ import { type NewTaskData } from './task/task.model';
   styleUrl: './tasks.component.css',
 })
 export class TasksComponent {
+
+  constructor(private _tasksService:TasksService){}
+
   @Input({ required: true }) name!: string;
   @Input({ required: true }) userId!: string;
 
-  tasks = DUMMY_TASKS;
   isOpenAddTaskDialog: boolean = false;
 
   get selectedUserTask() {
-    return this.tasks.filter((task) => {
-      return task.userId === this.userId;
-    });
+    return this._tasksService.getUserTasks(this.userId)
   }
 
   onCompleteTask(id: string) {
-    this.tasks.splice(
-      this.tasks.findIndex((task) => task.id === id),
-      1
-    );
+    this._tasksService.removeTask(id)
   }
 
   onAddTask(): boolean {
@@ -41,14 +38,9 @@ export class TasksComponent {
   }
 
   onNewAddTask(newTask: NewTaskData) {
-    this.tasks.unshift({
-      id: new Date().getTime().toString(),
-      userId: this.userId,
-      title: newTask.title,
-      summary: newTask.summary,
-      dueDate: newTask.dueDate,
-    });
+   this._tasksService.addTask(newTask , this.userId);
+
    // to close dialog after push data
-    this.onCancelTask()
+    this.onCancelTask();
   }
 }
